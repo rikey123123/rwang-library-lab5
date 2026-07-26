@@ -1,10 +1,15 @@
 <template>
   <section class="book-list">
-    <h2>All books</h2>
+    <h2>Books with ISBN &gt; 1000</h2>
+
+    <p>
+      Query: ISBN &gt; 1000, ordered by ISBN descending,
+      limited to 5 results.
+    </p>
 
     <p v-if="loading">Loading books...</p>
     <p v-else-if="errorMessage">{{ errorMessage }}</p>
-    <p v-else-if="books.length === 0">No books found.</p>
+    <p v-else-if="books.length === 0">No matching books found.</p>
 
     <ul v-else>
       <li v-for="book in books" :key="book.id">
@@ -17,7 +22,14 @@
 
 <script>
 import { onMounted, ref } from 'vue'
-import { collection, getDocs } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  where
+} from 'firebase/firestore'
 import db from '../firebase/init.js'
 
 export default {
@@ -33,7 +45,14 @@ export default {
       errorMessage.value = ''
 
       try {
-        const querySnapshot = await getDocs(collection(db, 'books'))
+        const booksQuery = query(
+          collection(db, 'books'),
+          where('isbn', '>', 1000),
+          orderBy('isbn', 'desc'),
+          limit(5)
+        )
+
+        const querySnapshot = await getDocs(booksQuery)
 
         books.value = querySnapshot.docs.map((documentSnapshot) => ({
           id: documentSnapshot.id,
