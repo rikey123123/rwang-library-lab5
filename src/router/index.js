@@ -1,10 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { onAuthStateChanged } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
 
-import HomeView from '../views/HomeView.vue'
-import AboutView from '../views/AboutView.vue'
-import LoginView from '../views/LoginView.vue'
-import AccessDeniedView from '../views/AccessDeniedView.vue'
-import { isAuthenticated } from '../auth'
+import { auth, db } from '@/firebase'
+
+import HomeView from '@/views/HomeView.vue'
+import AboutView from '@/views/AboutView.vue'
+import FirebaseRegisterView from '@/views/FirebaseRegisterView.vue'
+import FirebaseSigninView from '@/views/FirebaseSigninView.vue'
+import ReaderDashboardView from '@/views/ReaderDashboardView.vue'
+import LibrarianDashboardView from '@/views/LibrarianDashboardView.vue'
+import LogoutView from '@/views/LogoutView.vue'
+import UnauthorizedView from '@/views/UnauthorizedView.vue'
 
 const routes = [
   {
@@ -21,14 +28,45 @@ const routes = [
     }
   },
   {
-    path: '/login',
-    name: 'Login',
-    component: LoginView
+    path: '/FireRegister',
+    name: 'fire-register',
+    component: FirebaseRegisterView
   },
   {
-    path: '/access-denied',
-    name: 'AccessDenied',
-    component: AccessDeniedView
+    path: '/FireLogin',
+    name: 'fire-login',
+    component: FirebaseSigninView
+  },
+  {
+    path: '/reader',
+    name: 'reader-dashboard',
+    component: ReaderDashboardView,
+    meta: {
+      requiresAuth: true,
+      role: 'reader'
+    }
+  },
+  {
+    path: '/librarian',
+    name: 'librarian-dashboard',
+    component: LibrarianDashboardView,
+    meta: {
+      requiresAuth: true,
+      role: 'librarian'
+    }
+  },
+  {
+    path: '/logout',
+    name: 'logout',
+    component: LogoutView,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/unauthorized',
+    name: 'unauthorized',
+    component: UnauthorizedView
   },
   {
     path: '/:pathMatch(.*)*',
@@ -37,23 +75,42 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
 
-router.beforeEach((to) => {
-  if (to.meta.requiresAuth && !isAuthenticated.value) {
+// Resolve the current Firebase user as a promise. Firebase Auth may still be
+// initialising right after a page refresh, so we wait for onAuthStateChanged
+// instead of reading auth.currentUser synchronously.
+function getCurrentUser() {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (user) => {
+        unsubscribe()
+        resolve(user)
+      },
+      reject
+    )
+  })
+}
+
+router.beforeEach(async (to) => {
+  const user = await getCurrentUser()
+
+  if (to.meta.requiresAuth && !user) {
     return {
-      name: 'AccessDenied',
-      query: {
-        redirect: to.fullPath
-      }
+      name: 'fire-login',
+      query: { redirect: to.fullPath }
     }
   }
 
-  if (to.name === 'Login' && isAuthenticated.value) {
-    return {
-      name: 'About'
+  if (to.meta.role && user) {
+    const userSnapshot = await getDoc(doc(db, 'users', user.uid))
+    const userRole = userSnapshot.exists() ? userSnapshot.data().role : null
+
+    if (userRole !== to.meta.role) {
+      return { name: 'unauthorized' }
     }
   }
 
