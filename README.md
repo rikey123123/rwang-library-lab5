@@ -1,7 +1,7 @@
 # FIT5032 Assessed Lab 8 — Mastering Firestore
 
 **Name:** _<your name>_ &nbsp;&nbsp; **Student ID:** _<your student id>_ &nbsp;&nbsp; **Tutorial:** _<your tutorial>_
-**Repository:** https://github.com/rikey123123/rwang-library-lab5 &nbsp;&nbsp; **Branch:** `lab8-firestore` &nbsp;&nbsp; **Final commit:** _<sha>_
+**Repository:** https://github.com/rikey123123/rwang-library-lab5 &nbsp;&nbsp; **Branch:** `lab8-firestore` &nbsp;&nbsp; **Final commit:** `29cf62f`
 **Submission Date:** _<date>_
 
 ---
