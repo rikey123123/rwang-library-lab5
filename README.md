@@ -143,8 +143,8 @@ Both reload the list after the operation so the change is visible immediately.
 **Figure 8.** Edit mode on a row — the Edit button reveals name + ISBN inputs and Save / Cancel buttons.
 ![Edit mode](lab8report/assets/05-booklist-edit-mode.png)
 
-**Figure 9.** Update proven by data change — edit `Audrey Book — ISBN 1012` into `Updated Audrey Book — ISBN 2020`; after Save the row jumps to the top of the list (highest ISBN) and the Firestore Console shows the new field values.
-> **Manual screenshot — instructions:** in the browser, click **Edit** on `Audrey Book`, change the name to `Updated Audrey Book` and ISBN to `2020`, click **Save**. Then open Firebase Console → Firestore → `books` and find that document showing the updated `name` and `isbn: 2020`. Take one browser shot (updated list) and one Firestore Console shot (updated document).
+**Figure 9.** Update proven by data change — edit the **first visible row** (the book with the highest ISBN, e.g. `Lab8 Demo Book — ISBN 1600`) and change it to `Updated Book — ISBN 2020`. After Save the row stays at the top of the list (2020 is now the highest ISBN) and the Firestore Console shows the new field values.
+> **Manual screenshot — instructions:** in the browser, click **Edit** on the first row in the list, change the name to `Updated Book` and the ISBN to `2020`, click **Save**. Then open Firebase Console → Firestore → `books` and find that document showing the updated `name` and `isbn: 2020`. Take one browser shot (updated list) and one Firestore Console shot (updated document).
 
 ```
 [ PLACEHOLDER: browser — list after update + Firestore Console updated document ]
