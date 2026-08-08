@@ -264,13 +264,33 @@ The response shape is:
 
 ```json
 {
-  "total": <number of documents in the books collection>,
-  "categories": { "ISBN 1000-1999": <count> },
-  "featuredBook": { "title": "<name>", "isbn": <isbn>, "category": "ISBN 1000-1999" }
+  "total": 15,
+  "categories": { "ISBN 1000-1999": 10, "ISBN 0-999": 4, "ISBN 2000-2999": 1 },
+  "featuredBook": { "title": "Updated Book", "isbn": 2020, "category": "ISBN 2000-2999" }
 }
 ```
 
 A failure to reach Firestore is caught and returned as HTTP 500 with `{"error": "Failed to read the books collection"}`, so the front end shows its error state instead of hanging.
+
+The deployed endpoint, again configured with no authentication:
+
+```text
+https://bookinsights-kabttjjdji.ap-southeast-1.fcapp.run
+```
+
+```text
+$ curl -i https://bookinsights-kabttjjdji.ap-southeast-1.fcapp.run
+
+HTTP/1.1 200 OK
+content-type: application/json; charset=utf-8
+access-control-allow-origin: *
+
+{"total":15,
+ "categories":{"ISBN 1000-1999":10,"ISBN 0-999":4,"ISBN 2000-2999":1},
+ "featuredBook":{"title":"Updated Book","isbn":2020,"category":"ISBN 2000-2999"}}
+```
+
+The 15 documents are the books accumulated in the collection during Lab 8, and the featured book is `Updated Book` because ISBN `2020` — written by the Lab 8 update test — is the highest ISBN in the collection. Both figures come from Firestore, not from anything stored in the function.
 
 ### 3.4 Firestore access
 
@@ -322,11 +342,33 @@ This is acceptable for an assessed lab with public, non-personal book data, but 
 
 The route `/book-insights` was added to the router and a **Book Insights** link to the header.
 
-**Figure 10.** The Book Insights dashboard showing the total, the featured book and the category breakdown produced by the cloud function.
+**Figure 10.** The Book Insights page before the cloud function is called.
+![Book Insights before](lab9report/assets/92-insights-before.png)
 
+**Figure 11.** The Book Insights dashboard showing the total, the featured book and the category breakdown produced by the cloud function.
+![Book Insights dashboard](lab9report/assets/92-insights-after.png)
+
+### 3.6 Verification
+
+Driving the page with Playwright and comparing what was rendered against what crossed the network:
+
+```text
+Total Books card      : 15
+card: Total Books
+card: Featured Book
+card: Books by Category
+Featured title        : Updated Book
+category rows         : 3
+  ISBN 1000-1999  10
+  ISBN 0-999      4
+  ISBN 2000-2999  1
+cloud function calls  : 1
+  1) GET 200  {"total":15,"categories":{"ISBN 1000-1999":10,"ISBN 0-999":4,
+               "ISBN 2000-2999":1},"featuredBook":{"title":"Updated Book",
+               "isbn":2020,"category":"ISBN 2000-2999"}}
 ```
-[ PLACEHOLDER: Book Insights dashboard — pending, see section 5 ]
-```
+
+Every value on screen matches the response body: the total, the featured title, and all three category rows with their counts. The chain from Firestore through the cloud function to the rendered dashboard is therefore confirmed end to end.
 
 ---
 
@@ -336,7 +378,7 @@ These are the failures that actually occurred while deploying, and what each one
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `400 MissingRequiredHeader: required HTTP header Date was not specified`, then `InvalidArgument: invalid authorization ''` | The function URL was created with **signature authentication**. A browser cannot sign an Alibaba Cloud request, so Axios could never succeed. | Changed the trigger's authentication mode to **no authentication**. |
+| `400 MissingRequiredHeader: required HTTP header Date was not specified`, then `InvalidArgument: invalid authorization ''` | The function URL was created with **signature authentication**. A browser cannot sign an Alibaba Cloud request, so Axios could never succeed. This happened for both functions, since it is the console default. | Changed the trigger's authentication mode to **no authentication**. |
 | `412 CAExited: Function instance exited unexpectedly (code 0) with start command 'npm run start'` | The function was created as a **web function**, but the code exported `exports.handler`. Node ran the file, exported a function and exited, because nothing kept the process alive. A web function must serve HTTP itself. | Rewrote the function as an HTTP server started with `http.createServer(...).listen(...)`. |
 | Same `CAExited` after redeploying through the console editor | The edit had not reached the code that actually runs — the startup log still showed the previous package name. | Deployed a ZIP built from the version-controlled sources, which changed the logged package name and confirmed the upload took effect. |
 | No startup output in the logs | Nothing distinguished "did not start" from "started but was unreachable". | Added startup logging (`node` version, port, book count) and bound explicitly to `0.0.0.0` so the platform health check can reach the port over IPv4. |
@@ -347,14 +389,17 @@ The last two changes are why `index.js` logs on startup: it makes the difference
 
 ## 5. Status
 
-Task 9.1 is complete and verified end to end: the deployed endpoint returns `{"count":5}`, and the running Vue page displays `Total number of books: 5` from that response.
+Both tasks are complete and verified end to end.
 
-Task 9.2 is written, committed and locally tested, but **not yet deployed**. Two items remain:
+| Task | Endpoint | Verified result |
+| --- | --- | --- |
+| 9.1 `countBooks` | `https://countbooks-gdbniaqfld.ap-southeast-1.fcapp.run` | `{"count":5}` → page shows `Total number of books: 5` |
+| 9.2 `bookInsights` | `https://bookinsights-kabttjjdji.ap-southeast-1.fcapp.run` | `total: 15`, 3 categories, featured `Updated Book` → dashboard matches |
 
-1. The `bookInsights` function URL has not been created yet, so `functionUrl` in `BookInsightsView.vue` is still the placeholder `'YOUR_ALIBABA_BOOK_INSIGHTS_URL'`.
-2. Figure 10 cannot be captured until that endpoint is live.
+In both cases the value rendered in the browser was compared against the response body observed on the network, so the figures on screen demonstrably come from the deployed cloud functions rather than from front-end state.
 
-The function was tested locally to the extent this machine allows: the server starts, answers the CORS preflight with `204`, and returns a clean `500` with the expected error JSON when Firestore is unreachable. The Firestore read itself could not be exercised locally because this machine cannot reach `firestore.googleapis.com` — that call is expected to succeed from Function Compute, which does have outbound internet access.
+One limitation worth recording: the `bookInsights` Firestore read could not be exercised on the development machine, because this machine cannot reach `firestore.googleapis.com`. Locally the function was confirmed to start, answer the CORS preflight with `204`, and return a clean `500` with the expected error JSON when the Firestore call fails. The successful read was verified only against the deployed function, which does have outbound internet access.
+
 
 ---
 

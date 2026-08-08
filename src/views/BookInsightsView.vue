@@ -85,7 +85,7 @@ const error = ref('')
 // HTTP Trigger endpoint of the bookInsights function on Alibaba Cloud
 // Function Compute. The function reads the Firestore books collection and
 // returns the aggregated figures rendered below.
-const functionUrl = 'YOUR_ALIBABA_BOOK_INSIGHTS_URL'
+const functionUrl = 'https://bookinsights-kabttjjdji.ap-southeast-1.fcapp.run'
 
 const loadInsights = async () => {
   try {
