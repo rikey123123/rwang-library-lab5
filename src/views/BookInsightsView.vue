@@ -36,7 +36,8 @@
         </h3>
 
         <p>
-          {{ insights.featuredBook.author }}
+          ISBN:
+          {{ insights.featuredBook.isbn }}
         </p>
 
         <p>
@@ -81,9 +82,10 @@ const insights = ref(null)
 const loading = ref(false)
 const error = ref('')
 
-// The Firebase Cloud Function HTTPS endpoint for bookInsights.
-// Replace with the URL returned by firebase deploy.
-const functionUrl = 'YOUR_FIREBASE_BOOK_INSIGHTS_URL'
+// HTTP Trigger endpoint of the bookInsights function on Alibaba Cloud
+// Function Compute. The function reads the Firestore books collection and
+// returns the aggregated figures rendered below.
+const functionUrl = 'YOUR_ALIBABA_BOOK_INSIGHTS_URL'
 
 const loadInsights = async () => {
   try {
