@@ -146,9 +146,12 @@ The source code for this method is shown in **Figure 1** above.
 
 **Figure 5 — Browser showing weather searched by city**
 
-[ PLACEHOLDER: Figure 5 — http://localhost:5179/WeatherCheck after typing
-"Clayton, AU" and clicking Search, showing Clayton's name, temperature in °C
-and the weather icon ]
+![Search weather by city](lab10report/assets/102-weather-city.png)
+
+Typing `Clayton, AU` and clicking **Search** returns `Clayton, AU`, `13 °C` and
+the `overcast clouds` icon. The Celsius value matches the raw API reading of
+`286.48` K (`286.48 − 273 = 13`), and the icon image was confirmed to have
+actually loaded rather than rendering as a broken image.
 
 ### 3.2 All books in JSON format
 
@@ -221,6 +224,8 @@ Each feature was checked against its underlying data rather than by eye alone.
 | All books JSON | Parsed the rendered JSON and asserted every entry has `title`, `year` and `author` | 6/6 books complete |
 | `authors.json` fetch | Captured the browser's network response for the file | `200 OK` |
 | Weather request URLs | Ran the page with a mocked browser geolocation and inspected the outgoing requests | Both `?lat=…&lon=…` and `?q=Clayton, AU` built correctly |
+| Search weather by city | Compared the rendered values against the raw API response fetched independently with `curl` | `Clayton, AU`, `13 °C`, `overcast clouds` — match (`286.48 K − 273 = 13`) |
+| Weather icon | Checked `img.complete && img.naturalWidth > 0` in the browser | Icon `04n.png` loaded successfully |
 
 ---
 
@@ -229,7 +234,7 @@ Each feature was checked against its underlying data rather than by eye alone.
 | Problem | Cause | Fix |
 |---|---|---|
 | Uncertain whether the tutorial's `fetch('src/...')` path works under Vite | Vite normally converts `.json` into an ES module when imported, which would break `response.json()` | Requested the URL directly against the dev server and confirmed it returns raw JSON with `Content-Type: application/json`; changed to an absolute path for robustness |
-| `401 Invalid API key` immediately after signing up | OpenWeatherMap does not activate new keys instantly | Waited for activation; the key format (32 hex characters) was confirmed correct beforehand |
+| `401 Invalid API key` immediately after signing up | OpenWeatherMap does not activate new keys instantly | Confirmed the key format (32 hex characters) was correct, then waited. The key began returning `200` roughly 25 minutes after registration. |
 | New API key not picked up by the running app | Vite reads `.env.local` only at startup, not on hot reload | Restarted the dev server |
 
 ---
