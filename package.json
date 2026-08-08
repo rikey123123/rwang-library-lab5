@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@primevue/themes": "^4.0.4",
+    "axios": "^1.19.0",
     "bootstrap": "^5.3.3",
     "firebase": "^12.16.0",
     "primevue": "^4.0.4",

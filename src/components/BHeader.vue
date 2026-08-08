@@ -28,6 +28,10 @@ const handleLogout = () => {
           <router-link to="/addbook" class="nav-link" active-class="active">Add Book</router-link>
         </li>
 
+        <li class="nav-item">
+          <router-link to="/book-counter" class="nav-link" active-class="active">Book Counter</router-link>
+        </li>
+
         <li v-if="!isAuthenticated" class="nav-item">
           <router-link to="/login" class="nav-link" active-class="active">Login</router-link>
         </li>
