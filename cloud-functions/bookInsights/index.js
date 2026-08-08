@@ -1,8 +1,12 @@
+'use strict'
+
 // Task 9.2 - bookInsights
-// Alibaba Cloud Function Compute, Node.js 20, event function behind an
-// HTTP Trigger. Reads the books collection of the Lab 7/8 Firestore
-// database over the Firestore REST API and returns the aggregated figures
-// that the Book Insights dashboard renders.
+// Alibaba Cloud Function Compute Web Function, Node.js 20 runtime.
+// Reads the books collection of the Lab 7/8 Firestore database over the
+// Firestore REST API and returns the aggregated figures that the Book
+// Insights dashboard renders.
+
+const http = require('node:http')
 
 const PROJECT_ID = 'nomash-library-lab7'
 const COLLECTION = 'books'
@@ -13,41 +17,43 @@ const FIRESTORE_URL =
   COLLECTION +
   '?pageSize=300'
 
-const CORS_HEADERS = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type'
-}
+const PORT = Number(process.env.FC_SERVER_PORT || process.env.PORT || 9000)
 
-exports.handler = async (event, context) => {
-  const request = parseEvent(event)
+console.log('bookInsights starting, node ' + process.version + ', port ' + PORT)
+
+const server = http.createServer(async (request, response) => {
+  console.log(request.method + ' ' + request.url)
+
+  // The browser sends a preflight request before the real GET.
   if (request.method === 'OPTIONS') {
-    return { statusCode: 204, headers: CORS_HEADERS, body: '' }
+    response.writeHead(204, corsHeaders())
+    response.end()
+
+    return
   }
 
   try {
     const books = await fetchBooks()
 
-    return {
-      statusCode: 200,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({
-        total: books.length,
-        categories: countByCategory(books),
-        featuredBook: pickFeatured(books)
-      })
-    }
-  } catch (err) {
-    console.error('bookInsights failed:', err)
+    send(response, 200, {
+      total: books.length,
+      categories: countByCategory(books),
+      featuredBook: pickFeatured(books)
+    })
+  } catch (error) {
+    console.error('bookInsights failed: ' + error.message)
 
-    return {
-      statusCode: 500,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ error: 'Failed to read the books collection' })
-    }
+    send(response, 500, { error: 'Failed to read the books collection' })
   }
-}
+})
+
+server.on('error', (error) => {
+  console.error('server error: ' + error.message)
+})
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log('bookInsights listening on 0.0.0.0:' + PORT)
+})
 
 async function fetchBooks() {
   const response = await fetch(FIRESTORE_URL)
@@ -101,12 +107,18 @@ function pickFeatured(books) {
   }
 }
 
-function parseEvent(event) {
-  try {
-    const raw = Buffer.isBuffer(event) ? event.toString('utf8') : event
-    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
-    return { method: (parsed.httpMethod || parsed.method || 'GET').toUpperCase() }
-  } catch (err) {
-    return { method: 'GET' }
+function send(response, statusCode, payload) {
+  response.writeHead(statusCode, {
+    'Content-Type': 'application/json; charset=utf-8',
+    ...corsHeaders()
+  })
+  response.end(JSON.stringify(payload))
+}
+
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
   }
 }
