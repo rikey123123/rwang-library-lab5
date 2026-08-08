@@ -5,6 +5,8 @@ import AboutView from '../views/AboutView.vue'
 import AddBookView from '../views/AddBookView.vue'
 import GetBookCountView from '../views/GetBookCountView.vue'
 import BookInsightsView from '../views/BookInsightsView.vue'
+import CountBookAPI from '../views/CountBookAPI.vue'
+import WeatherView from '../views/WeatherView.vue'
 import LoginView from '../views/LoginView.vue'
 import AccessDeniedView from '../views/AccessDeniedView.vue'
 import { isAuthenticated } from '../auth'
@@ -37,6 +39,16 @@ const routes = [
     path: '/book-insights',
     name: 'book-insights',
     component: BookInsightsView
+  },
+  {
+    path: '/CountBookAPI',
+    name: 'CountBookAPI',
+    component: CountBookAPI
+  },
+  {
+    path: '/WeatherCheck',
+    name: 'GetWeather',
+    component: WeatherView
   },
   {
     path: '/login',
