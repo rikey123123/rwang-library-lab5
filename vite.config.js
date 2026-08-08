@@ -6,6 +6,9 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // Deployed to https://rikey123123.github.io/rwang-library-lab5/, so all asset
+  // URLs must be prefixed with the repository name instead of the domain root.
+  base: '/rwang-library-lab5/',
   plugins: [
     vue(),
     vueDevTools(),

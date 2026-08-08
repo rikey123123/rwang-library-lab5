@@ -73,7 +73,9 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  // BASE_URL comes from vite.config.js `base`, so the router resolves paths
+  // relative to the repository sub-path when hosted on GitHub Pages.
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
 
