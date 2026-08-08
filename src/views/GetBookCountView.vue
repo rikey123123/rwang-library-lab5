@@ -41,8 +41,8 @@ const error = ref('')
 const loading = ref(false)
 
 // The Alibaba Cloud Function Compute HTTP endpoint for the
-// countBooks function. Replace with your Internet Endpoint.
-const functionUrl = 'YOUR_ALIBABA_FUNCTION_URL'
+// countBooks function.
+const functionUrl = 'https://countbooks-gdbniaqfld.ap-southeast-1.fcapp.run'
 
 const getBookCount = async () => {
   try {
